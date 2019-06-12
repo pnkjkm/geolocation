@@ -1,4 +1,4 @@
-var map, infoWindow, position;
+var map, infoWindow, position,marker,accuracy,CURCLE;
 
 function createMap () {
   var options = {
@@ -8,14 +8,37 @@ function createMap () {
 
   map = new google.maps.Map(document.getElementById('map'), options);
   infoWindow = new google.maps.InfoWindow;
+  getUserLocation(map);
+
+  // if (navigator.geolocation) {
+  //             getUserLocation(map);
+  //             // setInterval(function () {
+  //             //     getUserLocation(map);
+  //             // }, 5000);
+  //         }
+  //         else {
+  //           handleLocationError('No geolocation available.', map.getCenter());
+  //         }
 
 
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function (p) {
+  var input_1 = document.getElementById('search_1');
+  console.log(input_1);
+  // var searchBox_1 = new google.maps.places.SearchBox(input_1);
+  //
+  // map.addListener('bounds_changed', function() {
+  //   searchBox_1.setBounds(map.getBounds());
+  // });
+
+}
+function getUserLocation(map) {
+
+    navigator.geolocation.watchPosition(function (p) {
       position = {
         lat: p.coords.latitude,
-        lng: p.coords.longitude
+        lng: p.coords.longitude,
       };
+      accuracy= p.coords.accuracy;
+
 
 
        // infoWindow.setPosition(position);
@@ -28,25 +51,40 @@ function createMap () {
          iconImage:'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
          content:'Your Location'
        };
+       if (marker != undefined){
+        marker.setPosition(position);
+        circle.setCenter(position);
+        circle.setRadius(accuracy);
 
-       addMarker(current_location);
+      }
+        else{
+                marker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    animation: google.maps.Animation.DROP,
+                    icon  :'http://www.robotwoods.com/dev/misc/bluecircle.png'
+
+                });
+                circle = new google.maps.Circle({
+                    center: position,
+                    radius: accuracy,
+                    map:map,
+                    fillColor: '#bfbdb8',
+                    fillOpacity: 0.05,//opacity from 0.0 to 1.0,
+                    strokeColor:'blue', //stroke color,
+                    strokeOpacity: 0.1//opacity from 0.0 to 1.0
+                });
+                map.fitBounds(circle.getBounds());
+
+              }
+
+       // addMarker(current_location);
 
     }, function () {
       handleLocationError('Geolocation service failed', map.getCenter());
-    }, {maximumAge:10000, timeout:5000, enableHighAccuracy: true});
-  } else {
-    handleLocationError('No geolocation available.', map.getCenter());
-  }
-
-  var input_1 = document.getElementById('search_1');
-  console.log(input_1);
-  // var searchBox_1 = new google.maps.places.SearchBox(input_1);
-  //
-  // map.addListener('bounds_changed', function() {
-  //   searchBox_1.setBounds(map.getBounds());
-  // });
-
+    }, { enableHighAccuracy: true});
 }
+
 
 
 if ('serviceWorker' in navigator) {
