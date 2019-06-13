@@ -1,4 +1,6 @@
-var map, infoWindow, position,marker,accuracy,CURCLE;
+var map, infoWindow, position,marker,accuracy,circle,path;
+var polylineCoords = [];
+
 
 function createMap () {
   var options = {
@@ -37,6 +39,7 @@ function getUserLocation(map) {
         lat: p.coords.latitude,
         lng: p.coords.longitude,
       };
+      positionlatlng=new google.maps.LatLng(position.lat, position.lng);
       accuracy= p.coords.accuracy;
 
 
@@ -44,27 +47,31 @@ function getUserLocation(map) {
        // infoWindow.setPosition(position);
        // infoWindow.setContent('Your location!');
        // infoWindow.open(map);
-       map.setCenter(position);
-      var current_location =
-       {
-         coords:position,
-         iconImage:'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
-         content:'Your Location'
-       };
+
        if (marker != undefined){
+         if(getDistance(marker.get('position'),positionlatlng)>2){
         marker.setPosition(position);
         circle.setCenter(position);
         circle.setRadius(accuracy);
+        addCoord(position.lat,position.lng);
+        map.setCenter(position);
 
+}
       }
         else{
                 marker = new google.maps.Marker({
                     position: position,
                     map: map,
-                    animation: google.maps.Animation.DROP,
-                    icon  :'http://www.robotwoods.com/dev/misc/bluecircle.png'
-
+                    // icon  :'http://www.robotwoods.com/dev/misc/bluecircle.png'
+                    icon: {
+                                  path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                                  strokeColor : '#3333FF',
+                                  strokeWeight : 5,
+                                  scale: 2.5
+                                },
                 });
+                enableOrientationArrow();
+
                 circle = new google.maps.Circle({
                     center: position,
                     radius: accuracy,
@@ -75,6 +82,16 @@ function getUserLocation(map) {
                     strokeOpacity: 0.1//opacity from 0.0 to 1.0
                 });
                 map.fitBounds(circle.getBounds());
+                path = new google.maps.Polyline({
+                path: polylineCoords,
+                geodesic: true,
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2
+              });
+              path.setMap(map);
+
+
 
               }
 
