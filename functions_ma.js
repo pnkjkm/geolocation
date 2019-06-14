@@ -1,3 +1,47 @@
+function createRecordButton(map){
+  var centerControlDiv = document.createElement('button');
+        var centerControl = new CenterControl(centerControlDiv, map);
+        centerControlDiv.className ="ripple";
+        centerControlDiv.index = 1;
+        map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(centerControlDiv);
+}
+function setCurrentPosition(currentp){
+  accuracy= currentp.coords.accuracy;
+  position = {lat: currentp.coords.latitude,lng: currentp.coords.longitude};
+  marker = new google.maps.Marker({
+      position: position,
+      map: map,
+      // icon  :'http://www.robotwoods.com/dev/misc/bluecircle.png'
+      icon: {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    strokeColor : '#3333FF',
+                    strokeWeight : 5,
+                    scale: 2.5
+                  },
+  });
+  enableOrientationArrow();
+
+  circle = new google.maps.Circle({
+      center: position,
+      radius: accuracy,
+      map:map,
+      fillColor: '#bfbdb8',
+      fillOpacity: 0.05,//opacity from 0.0 to 1.0,
+      strokeColor:'blue', //stroke color,
+      strokeOpacity: 0.1//opacity from 0.0 to 1.0
+  });
+  map.fitBounds(circle.getBounds());
+  path = new google.maps.Polyline({
+  path: polylineCoords,
+  geodesic: true,
+  strokeColor: '#FF0000',
+  strokeOpacity: 1.0,
+  strokeWeight: 2
+});
+path.setMap(map);
+}
+
+
 function enableOrientationArrow() {
 
     if (window.DeviceOrientationEvent) {
@@ -20,20 +64,27 @@ function enableOrientationArrow() {
 };
 
 function addCoord(lat, lng) {
-  if(document.getElementById("recordbutton").innerHTML!='◉') {
+  if(document.getElementById("recordbutton").innerHTML==='PAUSE') {
    var point = new google.maps.LatLng(lat, lng);
    var coords = path.getPath();
    coords.push(point);
 
  }
 }
-function animatedMove(marker, t, current, moveto,accuracy) {
+function animatedMove(p,marker, t, current, moveto) {
+  position = {
+    lat: p.coords.latitude,
+    lng: p.coords.longitude,
+  };
+  moveto=new google.maps.LatLng(position.lat, position.lng);
+  accuracy= p.coords.accuracy;
+
   var lat = current.lat();
   var lng = current.lng();
 
   var deltalat = (moveto.lat() - current.lat()) / 100;
   var deltalng = (moveto.lng() - current.lng()) / 100;
-
+if(getDistance(marker.get('position'),moveto)>2){
   var delay = 10 * t;
   for (var i = 0; i < 100; i++) {
     (function(ind) {
@@ -52,64 +103,10 @@ function animatedMove(marker, t, current, moveto,accuracy) {
     })(i)
   }
   addCoord(moveto.lat(),moveto.lng());
+  map.panTo(position);
+}
 }
 
-
-// window.addEventListener("devicemotion", motion, true);
-
-let lastX, lastY, lastZ,motionind;
-let moveCounter = 0;
-
-// function motion(e) {
-//
-// 	let acc = e.acceleration;
-// 	if(!acc.hasOwnProperty('x')) {
-// 		acc = e.accelerationIncludingGravity;
-// 	}
-//
-// 	if(!acc.x) return;
-//
-// 	//only log if x,y,z > 1
-// 	if(Math.abs(acc.x) >= 0.0 &&
-// 	Math.abs(acc.y) >= 0.0 &&
-// 	Math.abs(acc.z) >=0.0) {
-// 		// console.log('motion', acc);
-// 		if(!lastX) {
-// 			lastX = acc.x;
-// 			lastY = acc.y;
-// 			lastZ = acc.z;
-// 			return;
-// 		}
-//
-// 		let deltaX = Math.abs(acc.x - lastX);
-// 		let deltaY = Math.abs(acc.y - lastY);
-// 		let deltaZ = Math.abs(acc.z - lastZ);
-// 		if(deltaX + deltaY + deltaZ > 0) {
-//       // console.log('Shake');
-//       lastX = acc.x;
-//       lastY = acc.y;
-//       lastZ = acc.z;
-//       motionind= 1;
-// 			// moveCounter++;
-// 		}
-//     else {
-// 			// moveCounter = Math.max(0, --moveCounter);
-//
-//       lastX = acc.x;
-//       lastY = acc.y;
-//       lastZ = acc.z;
-//       motionind= 0;
-// 		}
-//
-// 		// if(moveCounter > 2) {
-// 		// 	console.log('SHAKE!!!');
-// 		// 	moveCounter = 0;
-// 		// }
-//
-//
-//
-// 	}
-// }
 
 function rad(x) {
   return x * Math.PI / 180;
@@ -131,30 +128,16 @@ function CenterControl(controlDiv, map) {
 
         // Set CSS for the control border.
         var controlUI = document.createElement('div');
-        controlUI.style.backgroundColor = '#fff';
-        controlUI.style.border = '2px solid #fff';
-        controlUI.style.borderRadius = '3px';
-        controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-        controlUI.style.cursor = 'pointer';
-        controlUI.style.marginBottom = '22px';
-        controlUI.style.textAlign = 'center';
-        controlUI.title = 'Click to Start Recording';
         controlDiv.appendChild(controlUI);
 
         // Set CSS for the control interior.
         var controlText = document.createElement('div');
         controlText.id='recordbutton';
-        controlText.style.color = 'rgb(25,25,25)';
-        controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
-        controlText.style.fontSize = '45px';
-        controlText.style.lineHeight = '60px';
-        controlText.style.paddingLeft = '15px';
-        controlText.style.paddingRight = '15px';
-        controlText.innerHTML = '&#9673;';
+        controlText.innerHTML = 'START';
         controlUI.appendChild(controlText);
-        controlUI.addEventListener('click', function() {
-          if(controlText.innerHTML==='◉') {controlText.innerHTML = '&#9612;&#9612;'  ;      controlText.style.fontSize = '20px';}
-          else {controlText.innerHTML = '&#9673;'  ;       controlText.style.fontSize = '45px';}
+        controlDiv.addEventListener('click', function() {
+          if((controlText.innerHTML==='START' )||(controlText.innerHTML==='RESUME' )) {controlText.innerHTML = 'PAUSE'  ;      controlText.style.fontSize = '20px';}
+          else {controlText.innerHTML = 'RESUME'  ;       controlText.style.fontSize = '20';}
         });
 
 
