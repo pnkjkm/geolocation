@@ -21,7 +21,6 @@ function setCurrentPosition(currentp){
   });
   enableOrientationArrow();
   initMap();
-
   circle = new google.maps.Circle({
       center: position,
       radius: accuracy,
@@ -31,7 +30,6 @@ function setCurrentPosition(currentp){
       strokeColor:'blue', //stroke color,
       strokeOpacity: 0.1//opacity from 0.0 to 1.0
   });
-  map.fitBounds(circle.getBounds());
   path = new google.maps.Polyline({
   path: polylineCoords,
   geodesic: true,
@@ -39,7 +37,9 @@ function setCurrentPosition(currentp){
   strokeOpacity: 1.0,
   strokeWeight: 2
 });
+map.fitBounds(circle.getBounds());
 path.setMap(map);
+
 }
 
 
@@ -68,6 +68,7 @@ function addCoord(lat, lng) {
   if(document.getElementById("recordbutton").innerHTML==='PAUSE') {
    var point = new google.maps.LatLng(lat, lng);
    var coords = path.getPath();
+   lastTime=new Date().getTime();
    coords.push(point);
 
  }
@@ -85,7 +86,10 @@ function animatedMove(p,marker, t, current, moveto) {
 
   var deltalat = (moveto.lat() - current.lat()) / 100;
   var deltalng = (moveto.lng() - current.lng()) / 100;
-if(getDistance(marker.get('position'),moveto)>2){
+  var timelapsed=(new Date().getTime()-lastTime)/1000; // in seconds
+  var distancetravelled=getDistance(marker.get('position'),moveto); //in meters
+  var speed=distancetravelled/timelapsed;
+if((distancetravelled>2)&&(speed<40)){
   var delay = 10 * t;
   for (var i = 0; i < 100; i++) {
     (function(ind) {
@@ -137,6 +141,8 @@ function CenterControl(controlDiv, map) {
         controlText.innerHTML = 'START';
         controlUI.appendChild(controlText);
         controlDiv.addEventListener('click', function() {
+          showNotification(controlText.innerHTML);
+
           if((controlText.innerHTML==='START' )||(controlText.innerHTML==='RESUME' )) {controlText.innerHTML = 'PAUSE'  ;      controlText.style.fontSize = '20px';}
           else {controlText.innerHTML = 'RESUME'  ;       controlText.style.fontSize = '20';}
         });
@@ -151,4 +157,19 @@ function initMap() {
           url: 'http://thrillbear.com/Garbett_KML.kml',
           map: map
         });
+}
+
+function showNotification(message) {
+  Notification.requestPermission(function(result) {
+    if (result === 'granted') {
+      navigator.serviceWorker.ready.then(function(registration) {
+        registration.showNotification('GPS', {
+          body: message,
+          icon: 'https://thrillbear.com/wp-content/uploads/2019/06/ThrillBear-Logo-1-2.jpg',
+          vibrate: [200, 100, 200, 100, 200, 100, 200],
+          tag: 'vibration-sample'
+        });
+      });
+    }
+  });
 }

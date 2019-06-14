@@ -1,4 +1,5 @@
-var map, infoWindow, position,marker,accuracy,circle,path,speed;
+var map, infoWindow, position,marker,accuracy,circle,path,speed,timelapsed;
+var lastTime=new Date().getTime();
 var polylineCoords = [];
 
 
