@@ -1,4 +1,4 @@
-var map, infoWindow, position,marker,accuracy,circle,path;
+var map, infoWindow, position,marker,accuracy,circle,path,speed;
 var polylineCoords = [];
 
 
@@ -25,6 +25,11 @@ function createMap () {
 
   var input_1 = document.getElementById('search_1');
   console.log(input_1);
+  var centerControlDiv = document.createElement('div');
+        var centerControl = new CenterControl(centerControlDiv, map);
+
+        centerControlDiv.index = 1;
+        map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(centerControlDiv);
   // var searchBox_1 = new google.maps.places.SearchBox(input_1);
   //
   // map.addListener('bounds_changed', function() {
@@ -41,20 +46,21 @@ function getUserLocation(map) {
       };
       positionlatlng=new google.maps.LatLng(position.lat, position.lng);
       accuracy= p.coords.accuracy;
-
-
-
        // infoWindow.setPosition(position);
        // infoWindow.setContent('Your location!');
        // infoWindow.open(map);
 
        if (marker != undefined){
+
          if(getDistance(marker.get('position'),positionlatlng)>2){
-        marker.setPosition(position);
-        circle.setCenter(position);
-        circle.setRadius(accuracy);
-        addCoord(position.lat,position.lng);
-        map.setCenter(position);
+           animatedMove(marker,0.5,marker.get('position'),positionlatlng,accuracy);
+           map.setCenter(position);
+
+        // marker.setPosition(position);
+        // circle.setCenter(position);
+        // circle.setRadius(accuracy);
+        // addCoord(position.lat,position.lng);
+        // map.setCenter(position);
 
 }
       }
@@ -99,7 +105,7 @@ function getUserLocation(map) {
 
     }, function () {
       handleLocationError('Geolocation service failed', map.getCenter());
-    }, { enableHighAccuracy: true});
+    }, { enableHighAccuracy: true,maximumAge:2000});
 }
 
 
