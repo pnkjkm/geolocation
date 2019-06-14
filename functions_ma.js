@@ -20,6 +20,7 @@ function setCurrentPosition(currentp){
                   },
   });
   enableOrientationArrow();
+  initMap();
 
   circle = new google.maps.Circle({
       center: position,
@@ -142,4 +143,12 @@ function CenterControl(controlDiv, map) {
 
 
 
-      }
+}
+
+
+function initMap() {
+        var ctaLayer = new google.maps.KmlLayer({
+          url: 'http://thrillbear.com/Garbett_KML.kml',
+          map: map
+        });
+}
